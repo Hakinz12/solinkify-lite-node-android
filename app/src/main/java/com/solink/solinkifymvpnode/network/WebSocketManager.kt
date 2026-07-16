@@ -23,9 +23,12 @@ class WebSocketManager {
     private val gson = Gson()
     private val walletManager = WalletManager()
     private val relayService = RelayService()
+    private var shouldReconnect = true
+    private var coordinatorUrl = ""
     private var webSocket: WebSocket? = null
 
     fun connect(url: String) {
+        coordinatorUrl = url
 
         val request = Request.Builder()
             .url(url)
@@ -128,6 +131,14 @@ class WebSocketManager {
                     reason: String
                 ) {
                     Log.d("LiteNode", "Closing: $reason")
+                    if (shouldReconnect) {
+                        Log.d("LiteNode", "Reconnecting in 5 seconds...")
+
+                        Thread {
+                            Thread.sleep(5000)
+                            connect(coordinatorUrl)
+                        }.start()
+                    }
                     webSocket.close(code, reason)
                 }
 
@@ -147,6 +158,7 @@ class WebSocketManager {
     }
 
     fun disconnect() {
+        shouldReconnect = false
         webSocket?.close(1000, "Disconnected")
     }
 }
