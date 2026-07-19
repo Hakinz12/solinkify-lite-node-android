@@ -16,15 +16,17 @@ import com.solink.solinkifymvpnode.constants.Constants
 import com.solink.solinkifymvpnode.model.Job
 import com.solink.solinkifymvpnode.service.RelayService
 import com.solink.solinkifymvpnode.model.ResultMessage
+import com.solink.solinkifymvpnode.state.NodeState
 
 class WebSocketManager {
 
     private val client = OkHttpClient()
     private val gson = Gson()
-    private val walletManager = WalletManager()
+    //private val walletManager = WalletManager()
     private val relayService = RelayService()
     private var shouldReconnect = true
     private var coordinatorUrl = ""
+    private var reconnectAttempts = 0
     private var webSocket: WebSocket? = null
 
     fun connect(url: String) {
@@ -40,6 +42,9 @@ class WebSocketManager {
 
                 override fun onOpen(webSocket: WebSocket, response: Response) {
                     Log.d("LiteNode", "Connected to coordinator")
+                    reconnectAttempts = 0
+                    NodeState.connected = true
+                    NodeState.lastLog = "Connected to coordinator"
                 }
 
                 override fun onMessage(webSocket: WebSocket, text: String) {
@@ -51,27 +56,15 @@ class WebSocketManager {
                     when (json.getString("type")) {
 
                         "challenge" -> {
-                            val challenge = gson.fromJson(text, Challenge::class.java)
 
-                            Log.d("LiteNode", "Nonce received: ${challenge.nonce}")
-                            val message =
-                                (Constants.AUTH_DOMAIN + challenge.nonce).toByteArray()
-
-                            val signature = walletManager.sign(message)
-
-                            val authMessage = AuthMessage(
-                                type = "auth",
-                                wallet = walletManager.getPublicKey(),
-                                signature = Base64.encodeToString(signature, Base64.NO_WRAP)
+                            Log.d(
+                                "LiteNode",
+                                "Challenge received (wallet signing not implemented yet)"
                             )
 
-                            Log.d("LiteNode", "Prepared auth message")
-                            val authJson = gson.toJson(authMessage)
-                            webSocket.send(authJson)
-
-                            Log.d("LiteNode", "Auth message sent")
+                            NodeState.lastLog =
+                                "Challenge received (wallet signing not implemented yet)"
                         }
-
                         "ready" -> {
 
                             Log.d("LiteNode", "✅ Node authenticated")
@@ -94,10 +87,13 @@ class WebSocketManager {
                             Log.d("LiteNode", "TX size: ${job.tx.length} bytes")
                             relayService.relay(job)
 
+                            val signature = relayService.relay(job)
+
                             val result = ResultMessage(
                                 type = "result",
                                 job_id = job.job_id,
-                                signature = "PENDING_SIGNATURE")
+                                signature = signature ?: ""
+                            )
 
                             Log.d(
                                 "LiteNode",
@@ -129,14 +125,28 @@ class WebSocketManager {
                     webSocket: WebSocket,
                     code: Int,
                     reason: String
-                ) {
+                )
+                {
                     Log.d("LiteNode", "Closing: $reason")
+                    NodeState.connected = false
+                    NodeState.lastLog = "Connection closed"
                     if (shouldReconnect) {
-                        Log.d("LiteNode", "Reconnecting in 5 seconds...")
 
                         Thread {
-                            Thread.sleep(5000)
+                            val delay = minOf(5000L * (reconnectAttempts + 1), 30000L)
+                            Log.d(
+                                "LiteNode",
+                                "Reconnect attempt ${reconnectAttempts + 1} in ${delay / 1000} seconds..."
+                            )
+
+                            Thread.sleep(delay)
+
+                            reconnectAttempts++
                             connect(coordinatorUrl)
+                            Log.d(
+                                "LiteNode",
+                                "Attempting reconnection..."
+                            )
                         }.start()
                     }
                     webSocket.close(code, reason)
@@ -148,6 +158,8 @@ class WebSocketManager {
                     response: Response?
                 ) {
                     Log.e("LiteNode", "Connection failed", t)
+                    NodeState.connected = false
+                    NodeState.lastLog = "Connection failed"
                 }
             }
         )

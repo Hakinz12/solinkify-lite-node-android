@@ -1,15 +1,28 @@
 package com.solink.solinkifymvpnode.wallet
 
-class WalletManager {
+import android.content.Context
 
-    fun getPublicKey(): String {
-        return "TEST_PUBLIC_KEY"
+class WalletManager(context: Context) {
+
+    private val storage = SecureStorage(context)
+
+    fun importWallet(privateKey: String): Boolean {
+        storage.savePrivateKey(privateKey)
+        return true
     }
 
-    fun sign(message: ByteArray): ByteArray {
+    fun hasWallet(): Boolean {
+        return storage.getPrivateKey() != null
+    }
 
-        println("Signing message: ${String(message)}")
+    fun getPrivateKey(): String? {
+        return storage.getPrivateKey()
+    }
 
-        return ByteArray(64)
+    fun removeWallet() {
+        storage.clearWallet()
+    }
+    fun getWalletBs58(): String? {
+        return storage.getPrivateKey()
     }
 }
