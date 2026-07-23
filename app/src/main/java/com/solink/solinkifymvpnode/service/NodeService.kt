@@ -4,10 +4,12 @@ import android.util.Log
 import com.solink.solinkifymvpnode.constants.Constants
 import com.solink.solinkifymvpnode.network.WebSocketManager
 import com.solink.solinkifymvpnode.state.NodeState
+import android.content.Context
 
-class NodeService {
-
-    private val webSocketManager = WebSocketManager()
+class NodeService(
+    private val context: Context
+) {
+    private val webSocketManager = WebSocketManager(context)
 
     private var running = false
 
@@ -23,7 +25,7 @@ class NodeService {
 
         webSocketManager.connect(Constants.WS_URL)
         NodeState.running = true
-        NodeState.running = false
+
     }
 
     fun stopNode() {
@@ -38,6 +40,7 @@ class NodeService {
         NodeState.lastLog = "Node stopped"
 
         webSocketManager.disconnect()
+        NodeState.running = false
     }
 
     fun isRunning(): Boolean {

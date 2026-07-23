@@ -13,7 +13,7 @@ This project ports the Solinkify Lite Node runner to Android, allowing Android d
 - ✅ Relay job handling
 - ✅ Base64 transaction decoding
 - 🚧 Solana RPC integration (in progress)
-- 🚧 Material 3 dashboard (planned)
+- 🚧 Material 3 dashboard (planned) 
 
 ## 🛠️ Tech Stack
 

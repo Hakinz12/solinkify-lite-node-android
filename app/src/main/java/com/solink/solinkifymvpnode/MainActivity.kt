@@ -25,7 +25,9 @@ import androidx.core.content.ContextCompat
 import com.solink.solinkifymvpnode.service.LiteNodeForegroundService
 
 class MainActivity : ComponentActivity() {
-    private val nodeService = NodeService()
+    private val nodeService by lazy {
+        NodeService(this)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val serviceIntent = Intent(

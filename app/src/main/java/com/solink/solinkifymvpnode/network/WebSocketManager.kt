@@ -17,8 +17,12 @@ import com.solink.solinkifymvpnode.model.Job
 import com.solink.solinkifymvpnode.service.RelayService
 import com.solink.solinkifymvpnode.model.ResultMessage
 import com.solink.solinkifymvpnode.state.NodeState
+import com.solink.solinkifymvpnode.wallet.SolanaSigner
+import android.content.Context
 
-class WebSocketManager {
+class WebSocketManager(
+    private val context: Context
+) {
 
     private val client = OkHttpClient()
     private val gson = Gson()
@@ -57,13 +61,43 @@ class WebSocketManager {
 
                         "challenge" -> {
 
-                            Log.d(
-                                "LiteNode",
-                                "Challenge received (wallet signing not implemented yet)"
-                            )
+                            Log.d("LiteNode", "Challenge received")
 
-                            NodeState.lastLog =
-                                "Challenge received (wallet signing not implemented yet)"
+                            NodeState.lastLog = "Signing challenge..."
+
+                            try {
+
+                                val signer = SolanaSigner(context)
+
+                                val auth = signer.signChallenge(
+                                    json.getString("nonce")
+                                )
+
+                                val authJson = gson.toJson(auth)
+
+                                webSocket.send(authJson)
+
+                                Log.d(
+                                    "LiteNode",
+                                    "Authentication sent"
+                                )
+
+                                NodeState.lastLog =
+                                    "Authentication sent"
+
+                            } catch (e: Exception) {
+
+                                Log.e(
+                                    "LiteNode",
+                                    "Authentication failed",
+                                    e
+                                )
+
+                                NodeState.lastLog =
+                                    "Authentication failed"
+
+                            }
+
                         }
                         "ready" -> {
 
@@ -85,7 +119,6 @@ class WebSocketManager {
                             Log.d("LiteNode", "Transaction received")
 
                             Log.d("LiteNode", "TX size: ${job.tx.length} bytes")
-                            relayService.relay(job)
 
                             val signature = relayService.relay(job)
 
@@ -158,8 +191,13 @@ class WebSocketManager {
                     response: Response?
                 ) {
                     Log.e("LiteNode", "Connection failed", t)
+
                     NodeState.connected = false
-                    NodeState.lastLog = "Connection failed"
+                    NodeState.lastLog = t.message ?: "Unknown error"
+
+                    response?.let {
+                        Log.e("LiteNode", "HTTP ${it.code}: ${it.message}")
+                    }
                 }
             }
         )

@@ -10,9 +10,11 @@ activityCompose = "1.8.0"
 composeBom = "2024.04.01"
 okhttp = "4.12.0"
 gson = "2.13.1"
-tweetnacl = "1.0.3"
-base58 = "0.2.0"
+solana = "0.2.5"
+rpcCore = "0.2.7"
+multimult = "0.2.3"
 securityCrypto = "1.1.0-alpha06"
+
 
 
 [libraries]
@@ -32,9 +34,11 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson"}
-tweetnacl = { group = "io.github.novacrypto", name = "TweetNacl", version.ref = "tweetnacl" }
-base58 = { group = "org.bitcoinj", name = "bitcoinj-core", version.ref = "base58" }
+solana-web3 = { group = "com.solanamobile", name = "web3-solana", version.ref = "solana" }
+solana-rpc = { group = "com.solanamobile", name = "rpc-core", version.ref = "rpcCore" }
+multimult = { group = "io.github.funkatronics", name = "multimult", version.ref = "multimult" }
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
+
 
 
 [plugins]

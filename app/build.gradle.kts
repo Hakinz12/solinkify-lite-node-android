@@ -66,8 +66,12 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.solana.web3)
+    implementation(libs.solana.rpc)
+    implementation(libs.multimult)
     implementation(libs.okhttp)
     implementation(libs.gson)
-    implementation(libs.androidx.security.crypto)
+
 
 }

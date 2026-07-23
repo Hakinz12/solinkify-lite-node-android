@@ -13,8 +13,9 @@ import com.solink.solinkifymvpnode.R
 
 class LiteNodeForegroundService : Service() {
 
-    private val nodeService = NodeService()
-
+    private val nodeService by lazy {
+        NodeService(this)
+    }
     override fun onCreate() {
         super.onCreate()
 
